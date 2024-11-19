@@ -2,7 +2,7 @@ const Product = require("../models/Product");
 
 exports.createProduct = async (req, res, next) => {
     try {
-        const { thumbnailIndex, name, price, description , quantity } = req.body;
+        const { thumbnailIndex, name,  description , quantity, sku } = req.body;
     
         // Ensure images were uploaded
         if (!req.files || req.files.length === 0) {
@@ -10,7 +10,7 @@ exports.createProduct = async (req, res, next) => {
         }
     
         // Get uploaded file URLs
-        const imageUrls = req.files.map((file) =>process.env.UPLOAD_FOLDER `${file.filename}`);
+        const imageUrls = req.files.map((file) => `${process.env.UPLOAD_FOLDER}/${file.filename}`);
     
         // Ensure thumbnail index is valid
         const thumbnail = imageUrls[thumbnailIndex];
@@ -21,8 +21,8 @@ exports.createProduct = async (req, res, next) => {
         // Save product in the database
         const newProduct =new Product({
           name : name,
-          price : price,
           quantity : quantity,
+          sku:sku,
           description : description,
           mainImage:thumbnail, // Single thumbnail URL
           images: imageUrls, // All images including the thumbnail

@@ -15,7 +15,7 @@ const upload = multer({ storage }).array("images", 10); // Allow up to 10 images
 
 // Middleware to verify JWT and handle image upload
 const uploadImagesWithAuth = (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1]; // Extract token from "Bearer <token>"
+    const token = req.cookies['token']; // Get token from cookie
 
   if (!token) {
     return res.status(401).json({ message: "Authentication token missing" });
