@@ -66,3 +66,45 @@ exports.loginUser = async (req, res, next) => {
       next(err); // Pass the error to the error handler middleware
     }
   };
+
+
+
+  exports.addOrRemoveFavorite = async (req, res,next) => {
+    try {
+      const { userId, productId } = req.body;
+  
+      if (!userId || !productId) {
+        return res.status(400).json({ message: "User ID and Product ID are required." });
+      }
+  
+      // Fetch the user from the database
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found." });
+      }
+  
+      // Check if the product is already in favorites
+      const favoriteIndex = user.favorites.indexOf(productId);
+  
+      if (favoriteIndex === -1) {
+        // Product not in favorites, add it
+        user.favorites.push(productId);
+      } else {
+        // Product is already in favorites, remove it
+        user.favorites.splice(favoriteIndex, 1);
+      }
+  
+      // Save the updated user document
+      await user.save();
+  
+      return res.status(200).json({
+        message: favoriteIndex === -1 
+          ? "Product added to favorites." 
+          : "Product removed from favorites.",
+        favorites: user.favorites,
+      });
+    } catch (error) {
+        console.error("Error adding/removing favorite:", error);
+        next(error);
+    }
+  };
