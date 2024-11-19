@@ -2,7 +2,7 @@ const Product = require("../models/Product");
 
 exports.createProduct = async (req, res, next) => {
     try {
-        const { thumbnailIndex, name,  description , quantity, sku } = req.body;
+        const { thumbnailIndex, name,  description , quantity, sku ,price} = req.body;
     
         // Ensure images were uploaded
         if (!req.files || req.files.length === 0) {
@@ -25,6 +25,7 @@ exports.createProduct = async (req, res, next) => {
           sku:sku,
           description : description,
           mainImage:thumbnail, // Single thumbnail URL
+          price:price,
           images: imageUrls, // All images including the thumbnail
         });
     
@@ -116,50 +117,49 @@ exports.updateProduct = async (req, res, next) => {
 
 
 exports.deleteProduct = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const product = await Product.findById(id);
-    
-        if (!product) {
-          return res.status(404).json({ message: "Product not found" });
-        }
-    
-        await product.delete();
-    
-        res.status(200).json({ message: "Product deleted successfully" });
-      } catch (error) {
-        console.error("Error deleting product:", error);
-        next(error);
-      }
+  try {
+    const { id } = req.params;
+    const result = await Product.deleteOne({ _id: id });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    res.status(200).json({ message: "Product deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    next(error);
+  }
 };
 
 
 exports.searchProducts = async (req, res, next) => {
-    try {
-        const { query } = req.query;
-    
-        if (!query) {
-          return res.status(400).json({ message: "Search query is required" });
-        }
-    
-        const products = await Product.find({
-          $or: [
-            { name: { $regex: query, $options: "i" } },
-            { description: { $regex: query, $options: "i" } },
-          ],
-        });
-    
-        const removedUnwantedFields = products.map((product) => {
-          const { __v, ...rest } = product._doc;
-          return rest;
-        });
-    
-        res.status(200).json({ products: removedUnwantedFields });
-      } catch (error) {
-        console.error("Error searching products:", error);
-        next(error);
-      }
+  try {
+    const { query } = req.query;
+
+    console.log("Search query:", query);
+
+    // Validate that the query exists
+    if (!query) {
+      return res.status(400).json({ message: "Search query is required" });
+    }
+
+    // Search products by name using regex
+    const products = await Product.find({
+      name: { $regex: query, $options: "i" }, // Case-insensitive match
+    });
+
+    // Remove unwanted fields (__v)
+    const cleanedProducts = products.map((product) => {
+      const { __v, ...rest } = product._doc; // Remove the `__v` field
+      return rest;
+    });
+
+    // Respond with the found products
+    res.status(200).json({ products: cleanedProducts });
+  } catch (error) {
+    console.error("Error searching products by name:", error);
+    next(error);
+  }
 };
-
-
 

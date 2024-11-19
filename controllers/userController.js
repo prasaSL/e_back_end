@@ -69,11 +69,13 @@ exports.loginUser = async (req, res, next) => {
 
 
 
-  exports.addOrRemoveFavorite = async (req, res,next) => {
+  exports.addOrRemoveFavorite = async (req, res, next) => {
     try {
       const { userId, productId } = req.body;
+      console.log('Request Body:', req.body); // Log the request body for debugging
+      console.log('User ID:', userId, 'Product ID:', productId); // Log the extracted values
   
-      if (!userId || !productId) {
+      if (userId == null || productId == null) {
         return res.status(400).json({ message: "User ID and Product ID are required." });
       }
   
@@ -90,21 +92,14 @@ exports.loginUser = async (req, res, next) => {
         // Product not in favorites, add it
         user.favorites.push(productId);
       } else {
-        // Product is already in favorites, remove it
+        // Product in favorites, remove it
         user.favorites.splice(favoriteIndex, 1);
       }
   
-      // Save the updated user document
       await user.save();
-  
-      return res.status(200).json({
-        message: favoriteIndex === -1 
-          ? "Product added to favorites." 
-          : "Product removed from favorites.",
-        favorites: user.favorites,
-      });
-    } catch (error) {
-        console.error("Error adding/removing favorite:", error);
-        next(error);
+      res.status(200).json({ message: "Favorites updated successfully.", favorites: user.favorites });
+    } catch (err) {
+      console.error("Error updating favorites:", err); // Log the error for debugging
+      next(err); // Pass the error to the error handler middleware
     }
   };
