@@ -6,7 +6,7 @@ const { use } = require("../routes/productsRouter");
 
 exports.createUser = async (req, res, next) => {
   try {
-    const { username, email, password, userRole } = req.body;
+    const { username, email, password, userRole  } = req.body;
 
     if (!username || !email || !password || !username.trim() || !email.trim() || !password.trim()) {
       return next(errorHandler(400, "All fields are required"));
